@@ -176,7 +176,11 @@ impl Scanner
     fn get_next_token(&mut self)->Token
     {
         let mut t= Token::new();
-        let next_char = self.cstrm.get_next_char();
+        let mut next_char = self.cstrm.get_next_char();
+        while next_char==' '||next_char=='\n'
+        {
+            next_char = self.cstrm.get_next_char();
+        }
         t.line_num = self.cstrm.line_num;
         t.char_pos = self.cstrm.char_pos;
         let mut token_text = self.check_op(next_char);
@@ -195,6 +199,22 @@ impl Scanner
                 t.token_type = TokenType::IntConstant;
             }
             t.text = token_text.iter().collect(); //convert vec<char> to string and assign to t.text
+            return t
+        }
+        token_text = self.check_idk(next_char);
+        if token_text.len() > 0 {
+            t.text = token_text.iter().collect();
+            let keywords: Vec<String> = ["int".to_string(), "char".to_string(), "unsigned".to_string(),
+                "short".to_string(), "long".to_string(), "float".to_string(), "double".to_string(),
+                "while".to_string(), "if".to_string(), "main".to_string(), "void".to_string(),"return".to_string()].to_vec();
+            for keyword in keywords {
+                if t.text.eq(&keyword) {
+                    t.token_type = TokenType::Keyword;
+                    return t
+                }
+            }
+            t.token_type = TokenType::Identifier;
+
             return t
         }
         // call checking functions if none are true then assign TokenType as invalid
@@ -239,15 +259,27 @@ impl Scanner
         }
         return token_text
     }
-    //fn check Keyword
-    //fn check Identifier
+    fn check_idk(&mut self,mut elem:char)->Vec<char>
+    {
+        let mut token_text: Vec<char> = vec![];
+        if elem.is_alphabetic()||elem=='_'
+        {
+            token_text.push(elem);
+            while self.cstrm.peek_next_char().is_alphanumeric() || self.cstrm.peek_next_char()=='_'
+            {
+                elem = self.cstrm.get_next_char();
+                token_text.push(elem);
+            }
+        }
+        return token_text
+    }
 }
 
 fn main() {
     let mut all_tokens:Vec<Token>=vec![];
     let args: Vec<String> = env::args().collect();
     let mut s = Scanner::new(&args[1]);
-    for i in 0..150{
+    for i in 0..59{
         all_tokens.push(s.get_next_token())
     }
     let mut n=0;
