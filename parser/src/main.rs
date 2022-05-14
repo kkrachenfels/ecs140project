@@ -2,7 +2,7 @@ use std::fs;
 use std::env;
 use std::io::stdin;
 #[derive(Debug)]
-
+#[derive(Clone, Copy)]
 enum TokenType
 {
     IntConstant,
@@ -40,30 +40,8 @@ struct CStream {
     file_data: Vec<u8>,
     file_str: String
 }
-//Todo: change this function later
-fn token_creator(s: &str)->Token
-{
-    let mut t=Token{line_num:0,char_pos:0,text:s.to_string(),token_type:TokenType::Unassigned};
-    if t.text=="0" || t.text=="1"
-    {
-        t.token_type=TokenType::Constant;
-    }
-    else if t.text=="a" || t.text=="b"||t.text=="c" || t.text=="d"
-    {
-        t.token_type=TokenType::Variable;
-    }
-    else if t.text==":="||t.text ==";"
-    {
-        t.token_type=TokenType::Special;
-    }
-    else
-    {
-        t.token_type=TokenType::Operator;
-    }
-    return t;
-}
 
-fn tokenize()
+/*fn tokenize()
 {
     let mut token_str = String::new();
     let mut v : Vec<Token> = Vec::new();
@@ -97,7 +75,7 @@ fn tokenize()
             break;
         }
     }
-}
+}*/
 
 impl CStream {
     //read file to a vector and initialize position trackers
@@ -182,23 +160,104 @@ impl CStream {
 
 struct Scanner
 {
-
+    operator_list:Vec<char>,
+    cstrm: CStream
 }
 
 impl Scanner
 {
-    fn get_nxext_token(c:CStream)//->Token
+    fn new(filename: &str)->Scanner
     {
-        let t= Token::new();
+        Scanner {
+            operator_list: ['(', ',', ')', '{', '}', '=', '<', '>','+', '-', '*', '/', ';'].to_vec(),
+            cstrm: CStream::new(&filename)
+        }
     }
+    fn get_next_token(&mut self)->Token
+    {
+        let mut t= Token::new();
+        let next_char = self.cstrm.get_next_char();
+        t.line_num = self.cstrm.line_num;
+        t.char_pos = self.cstrm.char_pos;
+        let mut token_text = self.check_op(next_char);
+        if token_text.len() > 0 {
+            t.token_type = TokenType::Operator;
+            t.text = token_text.iter().collect(); //convert vec<char> to string and assign to t.text
+            return t
+        }
+        token_text = self.check_const(next_char);
+        if token_text.len() > 0
+        {
+            if token_text.contains(&'.') {
+                t.token_type = TokenType::FloatConstant;
+            }
+            else {
+                t.token_type = TokenType::IntConstant;
+            }
+            t.text = token_text.iter().collect(); //convert vec<char> to string and assign to t.text
+            return t
+        }
+        // call checking functions if none are true then assign TokenType as invalid
+        return t
+    }
+    fn check_const(&mut self,mut elem:char)->Vec<char>
+    {
+        let mut token_text: Vec<char> = vec![];
+        // decimal point flag set to 1 if decimal point already encountered
+        let mut dp_flag=0;
+        if elem.is_digit(10) || (elem=='-' && self.cstrm.peek_next_char().is_digit(10))
+        {
+            token_text.push(elem);
+            while self.cstrm.peek_next_char().is_digit(10) || (self.cstrm.peek_next_char()=='.' && dp_flag==0)
+            {
+                elem = self.cstrm.get_next_char();
+                if elem == '.'
+                {
+                    dp_flag=1;
+                }
+                token_text.push(elem);
+            }
+        }
+        return token_text
+    }
+    fn check_op(&mut self, elem: char)->Vec<char>
+    {
+        let mut token_text: Vec<char> = vec![];
+        if (elem == '=' || elem=='<'||elem=='>'||elem=='!') && (self.cstrm.peek_next_char()=='=')
+        {
+            token_text.push(elem);
+            token_text.push('=');
+            return token_text
+        }
+        for i in 0..self.operator_list.len()
+        {
+            if self.operator_list[i] == elem
+            {
+                token_text.push(elem);
+                return token_text
+            }
+        }
+        return token_text
+    }
+    //fn check Keyword
+    //fn check Identifier
 }
 
 fn main() {
-    //let mut f = CStream::new("example1.x");
-    //println!("{} {}", f.line_num, f.char_pos);
-    //println!("{}", f.peek_next_char());
     let mut all_tokens:Vec<Token>=vec![];
     let args: Vec<String> = env::args().collect();
-    let file= CStream::new(&args[1]);
-    println!("{}",file.file_str);
+    let mut s = Scanner::new(&args[1]);
+    for i in 0..150{
+        all_tokens.push(s.get_next_token())
+    }
+    let mut n=0;
+    for token in all_tokens.iter()
+    {
+        println!("Token {} = {}\nToken Type: {:?}\n",n,token.text,token.token_type);
+        n+=1;
+        if n==all_tokens.len()-1
+        {
+            break;
+        }
+    }
 }
