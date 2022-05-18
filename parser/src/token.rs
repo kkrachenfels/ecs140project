@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[derive(Clone)]
 
 pub enum TokenType
 {
@@ -9,6 +10,8 @@ pub enum TokenType
     Operator,
     Invalid
 }
+
+#[derive(Clone)]
 
 pub struct Token
 {
