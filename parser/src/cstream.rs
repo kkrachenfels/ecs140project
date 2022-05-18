@@ -25,7 +25,7 @@ impl CStream {
     }
     //check if we are at the end of the vector
     pub fn more_available(&mut self) -> bool {
-        if usize::from(self.cur_char) == self.file_data.len()-2 {
+        if usize::from(self.cur_char) >= self.file_data.len()-2 {
             return false;
         }
         return true;
@@ -36,6 +36,10 @@ impl CStream {
     }
     //return the next char
     pub fn get_next_char(&mut self) -> char {
+        if self.more_available() == false {
+            return '\n'
+        }
+
         //if we're at the start of the file
         if self.line_num == -1 && self.char_pos == -1 {
             self.line_num = 0;
@@ -57,6 +61,9 @@ impl CStream {
     }
     //return the next char, without modifying position trackers
     pub fn peek_next_char(&mut self) -> char {
+        if self.more_available() == false {
+            return '\n'
+        }
         if self.line_num == -1 && self.char_pos == -1 {
             return self.file_data[self.cur_char] as char;
         }

@@ -44,7 +44,7 @@ impl Scanner
             t.text = token_text.iter().collect(); //convert vec<char> to string and assign to t.text
             return t
         }
-        token_text = self.check_idk(next_char);
+        token_text = self.check_idorkey(next_char);
         if token_text.len() > 0 {
             t.text = token_text.iter().collect();
             let keywords: Vec<String> = ["int".to_string(), "char".to_string(), "unsigned".to_string(),
@@ -102,7 +102,7 @@ impl Scanner
         }
         return token_text
     }
-    pub fn check_idk(&mut self,mut elem:char)->Vec<char>
+    pub fn check_idorkey(&mut self,mut elem:char)->Vec<char>
     {
         let mut token_text: Vec<char> = vec![];
         if elem.is_alphabetic()||elem=='_'
@@ -116,4 +116,8 @@ impl Scanner
         }
         return token_text
     }
+    pub fn not_eof(&mut self) -> bool {
+        return self.cstrm.more_available()
+    }
+
 }

@@ -52,17 +52,15 @@ fn main() {
     let mut all_tokens:Vec<Token>=vec![];
     let args: Vec<String> = env::args().collect();
     let mut s = Scanner::new(&args[1]);
-    for i in 0..59{
-        all_tokens.push(s.get_next_token())
+    
+    while s.not_eof() {
+        all_tokens.push(s.get_next_token());
     }
+
     let mut n=0;
     for token in all_tokens.iter()
     {
         println!("Token {} = {}\nToken Type: {:?}\n",n,token.text,token.token_type);
         n+=1;
-        if n==all_tokens.len()-1
-        {
-            break;
-        }
     }
 }
