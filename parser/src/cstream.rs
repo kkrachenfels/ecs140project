@@ -1,5 +1,7 @@
 use std::fs;
 
+#[derive(Debug)]
+
 pub struct CStream {
     pub filename: String,
     pub line_num: i32,
