@@ -12,43 +12,6 @@ use crate::scanner::Scanner;
 use crate::parser::*;
 
 
-/*fn tokenize()
-{
-    let mut token_str = String::new();
-    let mut v : Vec<Token> = Vec::new();
-    stdin().read_line(&mut token_str)
-        .ok()
-        .expect("Failed to read line");
-    //println!("{}", token_str);
-    for (i,c) in token_str.chars().enumerate()
-    {
-        if c ==':' && token_str.chars().nth(i+1).unwrap()=='='
-        {
-            let special_s=":=";
-            v.push(token_creator(&special_s));
-        }
-        else if c =='=' && token_str.chars().nth(i-1).unwrap()==':'
-        {
-            continue;
-        }
-        else
-        {
-            v.push(token_creator(&c.to_string()));
-        }
-    }
-    let mut n=0;
-    for token in v.iter()
-    {
-        println!("Token {} = {}\nToken Type: {:?}\n",n,token.text,token.token_type);
-        n+=1;
-        if n==v.len()-1
-        {
-            break;
-        }
-    }
-}*/
-
-
 
 fn main() {
     let mut all_tokens:Vec<Token>=vec![];

@@ -29,8 +29,17 @@ impl Parser {
     
     //Program := {Declaration} MainDeclaration {FunctionDefinition}
     pub fn program(&mut self) -> Result<i32, ParseError> {
-        //descend into declaration 
-        let declaration_ret = self.declaration()?;
+
+        //check second token
+        if self.tokens[1].text != "main".to_string() {
+            //descend into declaration 
+            //loop
+            let mut declaration_ret = self.declaration()?;
+            while (declaration_ret == 0) {
+                declaration_ret = self.declaration()?;
+            }
+        }
+
         //descend into main_declaration
         let main_declar_ret = self.main_declaration()?;
 
@@ -69,6 +78,8 @@ impl Parser {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "MainDeclaration := void main ( ) Block".to_string()});
         }
+        self.inc_token();
+
 
         //if no errors in "void main ( )"
         let block_ret = self.block()?;
@@ -77,15 +88,187 @@ impl Parser {
         Ok(0)
     }
 
-    //Block := { {Declaration} {Statement} {FunctionDefinition} }
-    pub fn block(&mut self) -> Result<i32, ParseError> {
-
+    //FunctionDefinition := DeclarationType ParameterBlock Block
+    pub fn function_definition(&mut self) -> Result<i32, ParseError> {
+    
         //no errors
         Ok(0)
     }
 
     //DeclarationType := DataType Identifier
     pub fn declaration_type(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //VariableDeclaration := [= Constant] ;
+    pub fn variable_declaration(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //FunctionDeclaration := ParameterBlock ;
+    pub fn variable_declaration(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Block := { {Declaration} {Statement} {FunctionDefinition} }
+    pub fn block(&mut self) -> Result<i32, ParseError> {
+        if self.tokens[self.t_num].text != "{".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
+        }
+        self.inc_token();
+
+        //{declaration}
+        let mut declaration_ret = self.declaration()?;
+        while (declaration_ret == 0) {
+            declaration_ret = self.declaration()?;
+        }
+
+        //{statement}
+        let mut declaration_ret = self.statement()?;
+        while (declaration_ret == 0) {
+            declaration_ret = self.statement()?;
+        }
+
+        //{declaration}
+        let mut declaration_ret = self.function_defintion()?;
+        while (declaration_ret == 0) {
+            declaration_ret = self.function_definition()?;
+        }
+
+
+        //no errors
+        Ok(0)
+    }
+
+    //ParameterBlock := ( [Parameter {, Parameter}] ) ;
+    pub fn parameter_block(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //DataType := IntegerType | FloatType
+    pub fn data_type(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Constant := IntConstant | FloatConstant
+    pub fn constant(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    /*Statement := Assignment | WhileLoop | IfStatement | 
+        ReturnStatement | (Expression ;)*/
+    pub fn statment(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Parameter := DataType Identifier
+    pub fn parameter(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //IntegerType := [unsigned] (char | short | int | long)
+    pub fn integer_type(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //FloatType := float | double
+    pub fn float_type(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Assignment := Identifier = {Identifier = } Expression;
+    pub fn assignment(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //WhileLoop := while ( Expression ) Block
+    pub fn while_loop(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //IfStatement := if ( Expression ) Block
+    pub fn if_statement(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //ReturnStatement := return Expression ;
+    pub fn return_statement(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Expression := SimpleExpression [ RelationOperator SimpleExpression ]
+    pub fn expression(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //SimpleExpression := Term { AddOperator Term }
+    pub fn simple_expression(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //Term := Factor { MultOperator Factor }
+    pub fn term(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    /*Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] ) */
+    pub fn factor(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //RelationOperator := ( == ) | < | > | ( <= ) | ( >= ) | ( != )
+    pub fn relation_operator(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //AddOperator := + | -
+    pub fn add_operator(&mut self) -> Result<i32, ParseError> {
+    
+        //no errors
+        Ok(0)
+    }
+
+    //MultOperator := * | /
+    pub fn mult_operator(&mut self) -> Result<i32, ParseError> {
     
         //no errors
         Ok(0)
