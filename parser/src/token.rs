@@ -1,5 +1,6 @@
 #[derive(Debug)]
 #[derive(Clone)]
+#[derive(PartialEq)]
 
 pub enum TokenType
 {
