@@ -221,6 +221,8 @@ impl Parser {
             }  
         }
 
+        Ok(0)
+
     }
 
     //ParameterBlock := ( [Parameter {, Parameter}] ) 
@@ -260,17 +262,27 @@ impl Parser {
     pub fn data_type(&mut self) -> Result<i32, ParseError> {
         println!("In data type");
 
-        let int_ret = self.integer_type()?;
-        let float_ret = self.float_type()?;
+        let int_ret = self.integer_type();
+        let float_ret = self.float_type();
 
+        if let Ok(i) = int_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+        if let Ok(i) = float_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+        //else {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "DataType := IntegerType | FloatType".to_string()});
+        //}
+
+        /*
         if (int_ret == 0 || float_ret == 0) {
             self.inc_token();
             Ok(0)
-        }
-        else {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "DataType := IntegerType | FloatType".to_string()});
-        }
+        }*/
 
         //no errors
         //Ok(0)
@@ -336,13 +348,14 @@ impl Parser {
     pub fn float_type(&mut self) -> Result<i32, ParseError> {
         println!("In float type");
 
-        if self.tokens[self.t_num].text != "float".to_string() || self.tokens[self.t_num].text != "double".to_string() {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "FloatType := float | double".to_string()});
+        if self.tokens[self.t_num].text == "float".to_string() || self.tokens[self.t_num].text == "double".to_string() {
+            return Ok(0)
         }
 
         //no errors
-        Ok(0)
+       // Ok(0)
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "FloatType := float | double".to_string()});
     }
 
     //Assignment := Identifier = {Identifier = } Expression;
