@@ -132,7 +132,7 @@ impl Parser {
         println!("In declaration type");
 
         let datatype_ret = self.data_type()?;
-        self.inc_token();
+        //self.inc_token();
 
         if self.tokens[self.t_num].token_type != TokenType::Identifier {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
