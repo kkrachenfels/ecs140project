@@ -32,13 +32,17 @@ impl Parser {
         println!("In program");
         
         //check second token
-        if self.tokens[1].text != "main".to_string() {
+       /* if self.tokens[].text != "main".to_string() {
             //descend into declaration 
             //loop
             let mut declaration_ret = self.declaration()?;
             while declaration_ret == 0 {
                 declaration_ret = self.declaration()?;
             }
+        }*/
+
+        while self.tokens[self.t_num].text != "void".to_string() {
+            let mut declaration_ret = self.declaration()?;
         }
 
         //descend into main_declaration
@@ -60,6 +64,8 @@ impl Parser {
 
         let declar_ret = self.declaration_type()?;
 
+        println!("came up from declaration type");
+
         //Ok(0) => 0
         //error(msg)
 
@@ -67,15 +73,21 @@ impl Parser {
         let var_dec = self.variable_declaration();
         let func_dec = self.function_declaration();
 
-        /*if var_dec == 0 || func_dec == 0 {
-            Ok(0)
-        }
-        else {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()});
-        }*/
 
-        //no errors
+/*
+
+
+        if let Ok(i) = var_dec {
+            self.inc_token();
+            return Ok(0)
+        } 
+        if let Ok(i) = func_dec {
+            self.inc_token();
+            return Ok(0);
+        }
+
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); */
         Ok(0)
     }
 
@@ -134,14 +146,12 @@ impl Parser {
         let datatype_ret = self.data_type()?;
         //self.inc_token();
 
-        if self.tokens[self.t_num].token_type != TokenType::Identifier {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "DeclarationType := DataType Identifier".to_string()});
+        if self.tokens[self.t_num].token_type == TokenType::Identifier {
+            self.inc_token();
+            return Ok(0)
         }
-        self.inc_token();
-
-        //no errors
-        Ok(0)
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+            msg: "DeclarationType := DataType Identifier".to_string()});
     }
 
     //VariableDeclaration := [= Constant] ;
@@ -192,7 +202,7 @@ impl Parser {
         let mut declaration_ret = self.declaration();
         while true {
             if let Ok(i) = declaration_ret {
-                self.inc_token();
+                //self.inc_token();
                 declaration_ret = self.declaration();
             } else {
                 break;
@@ -203,7 +213,7 @@ impl Parser {
         let mut statement_ret = self.statement();
         while true {
             if let Ok(i) = statement_ret {
-                self.inc_token();
+                //self.inc_token();
                 statement_ret = self.declaration();
             } else {
                 break;
@@ -214,12 +224,18 @@ impl Parser {
         let mut funcdef_ret = self.function_definition();
         while true {
             if let Ok(i) = funcdef_ret {
-                self.inc_token();
+                //self.inc_token();
                 funcdef_ret = self.declaration();
             } else {
                 break;
             }  
         }
+
+        if self.tokens[self.t_num].text != "}".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
+        }
+        self.inc_token();
 
         Ok(0)
 
@@ -273,6 +289,7 @@ impl Parser {
             self.inc_token();
             return Ok(0)
         } 
+        println!("didn't find int or float type");
         //else {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "DataType := IntegerType | FloatType".to_string()});
@@ -315,12 +332,15 @@ impl Parser {
         println!("In parameter");
 
         let datatype_ret = self.data_type()?;
-        self.inc_token();
+        //self.inc_token();
 
         if self.tokens[self.t_num].token_type != TokenType::Identifier {
+            println!("found identifier!");
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "DeclarationType := DataType Identifier".to_string()});
         }
+
+        println!("Leaving parameter");
         self.inc_token();
 
         //no errors
@@ -335,13 +355,13 @@ impl Parser {
             self.inc_token();
         }
 
-        if self.tokens[self.t_num].text != "char".to_string() || self.tokens[self.t_num].text != "short".to_string() || self.tokens[self.t_num].text != "long".to_string() || self.tokens[self.t_num].text != "int".to_string()  {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "IntegerType := [unsigned] (char | short | int | long)".to_string()});
+        if self.tokens[self.t_num].text == "char".to_string() || self.tokens[self.t_num].text == "short".to_string() || self.tokens[self.t_num].text == "long".to_string() || self.tokens[self.t_num].text == "int".to_string()  {
+            //self.inc_token();
+            return Ok(0)
         }
 
-        //no errors
-        Ok(0)
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "IntegerType := [unsigned] (char | short | int | long)".to_string()});
     }
 
     //FloatType := float | double
@@ -349,6 +369,7 @@ impl Parser {
         println!("In float type");
 
         if self.tokens[self.t_num].text == "float".to_string() || self.tokens[self.t_num].text == "double".to_string() {
+            //self.inc_token();
             return Ok(0)
         }
 
@@ -451,5 +472,6 @@ impl Parser {
         self.t_num += 1;
         self.line_num = self.tokens[self.t_num].line_num;
         self.char_pos = self.tokens[self.t_num].char_pos;
+        println!("On token: {}, type: {}", self.tokens[self.t_num].text, self.tokens[self.t_num].token_type.as_str());
     }
 }
