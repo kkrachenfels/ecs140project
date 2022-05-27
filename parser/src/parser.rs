@@ -237,6 +237,9 @@ impl Parser {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
+        
+        println!("RETURNING FROM BLOCK");
+
         self.inc_token();
 
         Ok(0)
@@ -337,11 +340,35 @@ impl Parser {
     pub fn statement(&mut self) -> Result<i32, ParseError> {
         println!("In statement");
 
-        let assign_ret = self.assignment()?;
+        let assign_ret = self.assignment();
+        let while_ret = self.while_loop();
+        let if_ret = self.if_statement();
+        let ret_ret = self.return_statement();
+
+
+        if let Ok(i) = assign_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+        if let Ok(i) = while_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+        if let Ok(i) = if_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+        if let Ok(i) = ret_ret {
+            self.inc_token();
+            return Ok(0)
+        } 
+
 
         println!("leaving statement");
         //no errors
-        Ok(0)
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Statement := Assignment | WhileLoop | IfStatement | 
+        ReturnStatement | (Expression ;)".to_string()});
     }
 
     //Parameter := DataType Identifier
@@ -429,6 +456,27 @@ impl Parser {
     pub fn while_loop(&mut self) -> Result<i32, ParseError> {
         println!("In while loop");
 
+        if self.tokens[self.t_num].text != "while".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "WhileLoop := while ( Expression ) Block".to_string()});
+        }
+        self.inc_token();
+        if self.tokens[self.t_num].text != "(".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "WhileLoop := while ( Expression ) Block".to_string()});
+        }
+        self.inc_token();
+        println!("ABOUT TO CHECK EXPRESSION IN WHILE LOOP");
+        self.expression()?;
+        println!("CAME BACK FROM EXPRESSION IN WHILE LOOP");
+        if self.tokens[self.t_num].text != ")".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "WhileLoop := while ( Expression ) Block".to_string()});
+        }
+        self.inc_token();
+        self.block()?;
+
+
         //no errors
         Ok(0)
     }
@@ -445,7 +493,19 @@ impl Parser {
     pub fn return_statement(&mut self) -> Result<i32, ParseError> {
         println!("In return statement");
 
+        if self.tokens[self.t_num].text != "return".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "ReturnStatement := return Expression ;".to_string()});
+        }
+        self.inc_token();
+        self.expression()?;
+        if self.tokens[self.t_num].text != ";".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "ReturnStatement := return Expression ;".to_string()});
+        }
+
         //no errors
+        println!("FINISHED with return statement");
         Ok(0)
     }
 
@@ -482,6 +542,7 @@ impl Parser {
         while true {
             if let Ok(i) = add_op {
                 //self.inc_token();
+                println!("LOOPING IN SIMPLE EXPRESSION");
                 term_ret = self.term()?;
             } else {
                 break;
@@ -554,12 +615,15 @@ impl Parser {
                         }
                     }
                 }
+            } else {
+                println!("leaving factor");
+                return Ok(0)
             }
         }
 
         //if here it has to be a constant
         self.constant()?;
-
+        println!("leaving factor");
 
         //no errors
         Ok(0)
