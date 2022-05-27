@@ -48,9 +48,9 @@ impl Parser {
         //descend into main_declaration
         let main_declar_ret = self.main_declaration()?;
 
-        let mut funcdef_ret = self.function_definition()?;
-        while funcdef_ret == 0 {
-            funcdef_ret = self.function_definition()?;
+        let mut funcdef_ret = self.function_definition();
+        if let Ok(i) = funcdef_ret {
+            funcdef_ret = self.function_definition();
         }
 
         //if no parse errors
@@ -86,7 +86,7 @@ impl Parser {
 
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); 
-        Ok(0)
+
     }
 
     //MainDeclaration := void main ( ) Block
@@ -684,9 +684,11 @@ impl Parser {
 
     //since we'll be iterating through the vector a lot
     pub fn inc_token(&mut self) {
-        self.t_num += 1;
-        self.line_num = self.tokens[self.t_num].line_num;
-        self.char_pos = self.tokens[self.t_num].char_pos;
-        println!("On token: {}, type: {}", self.tokens[self.t_num].text, self.tokens[self.t_num].token_type.as_str());
+        if self.t_num+1 != self.tokens.len() {
+            self.t_num += 1;
+            self.line_num = self.tokens[self.t_num].line_num;
+            self.char_pos = self.tokens[self.t_num].char_pos;
+            println!("On token: {}, type: {}", self.tokens[self.t_num].text, self.tokens[self.t_num].token_type.as_str()); 
+        }
     }
 }
