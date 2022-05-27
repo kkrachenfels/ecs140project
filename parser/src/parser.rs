@@ -74,7 +74,7 @@ impl Parser {
         let func_dec = self.function_declaration();
 
 
-/*
+
 
 
         if let Ok(i) = var_dec {
@@ -87,7 +87,7 @@ impl Parser {
         }
 
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); */
+                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); 
         Ok(0)
     }
 
@@ -177,14 +177,15 @@ impl Parser {
         println!("In function_declaration");  
 
         self.parameter_block()?;
-        self.inc_token();
+        //self.inc_token();
         if self.tokens[self.t_num].text != ";".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "FunctionDeclaration := ParameterBlock ;".to_string()});
         }
 
         //no errors
-        self.inc_token();
+        //self.inc_token();
+        println!("returned from function declaration");
         Ok(0)
     }
 
@@ -257,21 +258,33 @@ impl Parser {
         
         let mut param_ret = self.parameter()?;
         while param_ret == 0 {
-            self.inc_token();
-            if self.tokens[self.t_num].text != ",".to_string() {
+            //self.inc_token();
+            if self.tokens[self.t_num].text == ",".to_string() {
                 self.inc_token();
-                param_ret = self.function_definition()?;
+                param_ret = self.parameter()?;
+            }
+            else if self.tokens[self.t_num].text == ")".to_string() {
+                self.inc_token();
+                println!("reached end of parameter block");
+                return Ok(0);
+            }
+            else {
+                return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
             }
         }
-
+/*
         if self.tokens[self.t_num].text != ")".to_string() {
+            println!("didn't detect end of parameter block");
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
         }
+*/
+        println!("reached end of parameter block");
 
         //no errors
         self.inc_token();
-        Ok(0)
+        Ok(0) 
     }
 
     //DataType := IntegerType | FloatType
@@ -383,6 +396,9 @@ impl Parser {
     pub fn assignment(&mut self) -> Result<i32, ParseError> {
         println!("In assignment");
 
+        
+
+        
         //no errors
         Ok(0)
     }
