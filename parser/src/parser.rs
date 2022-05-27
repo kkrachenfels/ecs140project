@@ -70,21 +70,19 @@ impl Parser {
         //error(msg)
 
         //TO-DO: check that either one is Ok(0) (can't use question mark)
-        let var_dec = self.variable_declaration();
         let func_dec = self.function_declaration();
+        let var_dec = self.variable_declaration();
+        
 
 
-
-
-
-        if let Ok(i) = var_dec {
-            self.inc_token();
-            return Ok(0)
-        } 
         if let Ok(i) = func_dec {
-            self.inc_token();
+            //self.inc_token();
             return Ok(0);
         }
+        if let Ok(i) = var_dec {
+            //self.inc_token();
+            return Ok(0)
+        } 
 
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); 
@@ -137,6 +135,7 @@ impl Parser {
         self.block()?;
 
         //no errors
+        println!("RETURNING FROM FUNCTION DEFINITION!");
         Ok(0)
     }
 
@@ -170,6 +169,8 @@ impl Parser {
         }
 
         //no errors
+        self.inc_token();
+        println!("returned from variable declaration!");
         Ok(0)
     }
 
@@ -185,7 +186,7 @@ impl Parser {
         }
 
         //no errors
-        //self.inc_token();
+        self.inc_token();
         println!("returned from function declaration");
         Ok(0)
     }
@@ -232,6 +233,8 @@ impl Parser {
                 break;
             }  
         }
+
+        //println!("COULD POTENTIALLY RETURN FROM BLOCK");
 
         if self.tokens[self.t_num].text != "}".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
@@ -340,26 +343,31 @@ impl Parser {
     pub fn statement(&mut self) -> Result<i32, ParseError> {
         println!("In statement");
 
-        let assign_ret = self.assignment();
+        
         let while_ret = self.while_loop();
         let if_ret = self.if_statement();
         let ret_ret = self.return_statement();
+        let assign_ret = self.assignment();
 
 
         if let Ok(i) = assign_ret {
-            self.inc_token();
+            //self.inc_token();
+            println!("leaving statement");
             return Ok(0)
         } 
         if let Ok(i) = while_ret {
-            self.inc_token();
+            //self.inc_token();
+            println!("leaving statement");
             return Ok(0)
         } 
         if let Ok(i) = if_ret {
-            self.inc_token();
+            //self.inc_token();
+            println!("leaving statement");
             return Ok(0)
         } 
         if let Ok(i) = ret_ret {
-            self.inc_token();
+            //self.inc_token();
+            println!("leaving statement");
             return Ok(0)
         } 
 
@@ -441,6 +449,8 @@ impl Parser {
         //check for expression
         let exp_ret = self.expression()?;
 
+        println!("RESUMING ASSIGNMENT");
+
         if self.tokens[self.t_num].text != ";".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Assignment := Identifier = {Identifier = } Expression;".to_string()});
@@ -484,7 +494,10 @@ impl Parser {
     //IfStatement := if ( Expression ) Block
     pub fn if_statement(&mut self) -> Result<i32, ParseError> {
         println!("In if statement");
-
+        if self.tokens[self.t_num].text != "if".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "ReturnStatement := return Expression ;".to_string()});
+        }
         //no errors
         Ok(0)
     }
@@ -506,6 +519,7 @@ impl Parser {
 
         //no errors
         println!("FINISHED with return statement");
+        self.inc_token();
         Ok(0)
     }
 
@@ -544,6 +558,7 @@ impl Parser {
                 //self.inc_token();
                 println!("LOOPING IN SIMPLE EXPRESSION");
                 term_ret = self.term()?;
+                add_op = self.add_operator();
             } else {
                 break;
             }  
@@ -564,9 +579,10 @@ impl Parser {
             if let Ok(i) = mul_op {
                 //self.inc_token();
                 fac_ret = self.factor()?;
+                mul_op = self.mult_operator();
             } else {
                 break;
-            }  
+            }
         }
 
         println!("leaving term");
@@ -616,7 +632,8 @@ impl Parser {
                     }
                 }
             } else {
-                println!("leaving factor");
+                println!("found an identifier, leaving factor");
+                self.inc_token();
                 return Ok(0)
             }
         }
