@@ -215,7 +215,7 @@ impl Parser {
         while true {
             if let Ok(i) = statement_ret {
                 //self.inc_token();
-                statement_ret = self.declaration();
+                statement_ret = self.statement();
             } else {
                 break;
             }  
@@ -226,7 +226,7 @@ impl Parser {
         while true {
             if let Ok(i) = funcdef_ret {
                 //self.inc_token();
-                funcdef_ret = self.declaration();
+                funcdef_ret = self.function_definition();
             } else {
                 break;
             }  
@@ -336,6 +336,8 @@ impl Parser {
     pub fn statement(&mut self) -> Result<i32, ParseError> {
         println!("In statement");
 
+        let assign_ret = self.assignment()?;
+
         //no errors
         Ok(0)
     }
@@ -396,9 +398,22 @@ impl Parser {
     pub fn assignment(&mut self) -> Result<i32, ParseError> {
         println!("In assignment");
 
-        
 
-        
+        while (self.tokens[self.t_num].token_type == TokenType::Identifier) {
+            println!("checking assignment while loop");
+            //self.inc_token();
+            if self.tokens[self.t_num+1].text != "=" {
+                break;
+            }
+            self.inc_token();
+            self.inc_token();
+        }
+
+        //check for expression
+        let exp_ret = self.expression()?;
+
+
+
         //no errors
         Ok(0)
     }
@@ -431,6 +446,9 @@ impl Parser {
     pub fn expression(&mut self) -> Result<i32, ParseError> {
         println!("In expression");
 
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Expression := SimpleExpression [ RelationOperator SimpleExpression ]".to_string()});
+
         //no errors
         Ok(0)
     }
@@ -446,6 +464,18 @@ impl Parser {
     //Term := Factor { MultOperator Factor }
     pub fn term(&mut self) -> Result<i32, ParseError> {
         println!("In term");
+
+        let mut fac_ret = self.factor()?;
+
+        let mut mul_op = self.mult_operator();
+        while true {
+            if let Ok(i) = mul_op {
+                //self.inc_token();
+                fac_ret = self.factor()?;
+            } else {
+                break;
+            }  
+        }
 
         //no errors
         Ok(0)
@@ -463,24 +493,35 @@ impl Parser {
     pub fn relation_operator(&mut self) -> Result<i32, ParseError> {
         println!("In relation operator");
 
-        //no errors
-        Ok(0)
+        if self.tokens[self.t_num].text == "==".to_string() || self.tokens[self.t_num].text == "<".to_string() || self.tokens[self.t_num].text == ">".to_string() || self.tokens[self.t_num].text == "<=".to_string() || self.tokens[self.t_num].text == ">=".to_string() || self.tokens[self.t_num].text == "!=".to_string() {
+            self.inc_token();
+            return Ok(0)
+        }
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "RelationOperator := ( == ) | < | > | ( <= ) | ( >= ) | ( != )".to_string()});
+        
     }
 
     //AddOperator := + | -
     pub fn add_operator(&mut self) -> Result<i32, ParseError> {
         println!("In add operator");
-
-        //no errors
-        Ok(0)
+        if self.tokens[self.t_num].text == "+".to_string() || self.tokens[self.t_num].text == "-".to_string()  {
+            self.inc_token();
+            return Ok(0)
+        }
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "AddOperator := + | -".to_string()});
     }
 
     //MultOperator := * | /
     pub fn mult_operator(&mut self) -> Result<i32, ParseError> {
         println!("In mult operator");
-
-        //no errors
-        Ok(0)
+        if self.tokens[self.t_num].text == "*".to_string() || self.tokens[self.t_num].text == "/".to_string()  {
+            self.inc_token();
+            return Ok(0)
+        }
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "MultOperator := * | /".to_string()});
     }
 
     //since we'll be iterating through the vector a lot
