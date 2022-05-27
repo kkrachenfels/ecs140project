@@ -48,9 +48,9 @@ impl Parser {
         //descend into main_declaration
         let main_declar_ret = self.main_declaration()?;
 
-        let mut funcdef_ret = self.declaration()?;
+        let mut funcdef_ret = self.function_definition()?;
         while funcdef_ret == 0 {
-            funcdef_ret = self.declaration()?;
+            funcdef_ret = self.function_definition()?;
         }
 
         //if no parse errors
@@ -121,6 +121,7 @@ impl Parser {
         //if no errors in "void main ( )"
         let block_ret = self.block()?;
 
+        println!("LEAVING MAIN DECLARATION");
         //no errors
         Ok(0)
     }
@@ -338,6 +339,7 @@ impl Parser {
 
         let assign_ret = self.assignment()?;
 
+        println!("leaving statement");
         //no errors
         Ok(0)
     }
@@ -412,8 +414,13 @@ impl Parser {
         //check for expression
         let exp_ret = self.expression()?;
 
+        if self.tokens[self.t_num].text != ";".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Assignment := Identifier = {Identifier = } Expression;".to_string()});
+        }
 
-
+        println!("leaving assigment");
+        self.inc_token();
         //no errors
         Ok(0)
     }
@@ -446,10 +453,22 @@ impl Parser {
     pub fn expression(&mut self) -> Result<i32, ParseError> {
         println!("In expression");
 
+        let mut simp_ret = self.simple_expression()?;
+
+        let mut rel_op = self.relation_operator();
+
+        if let Ok(i) = rel_op {
+            simp_ret = self.simple_expression()?;
+        } else {
+            println!("leaving expression");
+            return Ok(0);
+        }
+/*
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Expression := SimpleExpression [ RelationOperator SimpleExpression ]".to_string()});
+                msg: "Expression := SimpleExpression [ RelationOperator SimpleExpression ]".to_string()}); */
 
         //no errors
+        println!("leaving expression");
         Ok(0)
     }
 
@@ -457,6 +476,18 @@ impl Parser {
     pub fn simple_expression(&mut self) -> Result<i32, ParseError> {
         println!("In simple expression");
 
+        let mut term_ret = self.term()?;
+
+        let mut add_op = self.add_operator();
+        while true {
+            if let Ok(i) = add_op {
+                //self.inc_token();
+                term_ret = self.term()?;
+            } else {
+                break;
+            }  
+        }
+        println!("leaving simple expression");
         //no errors
         Ok(0)
     }
@@ -477,6 +508,7 @@ impl Parser {
             }  
         }
 
+        println!("leaving term");
         //no errors
         Ok(0)
     }
@@ -484,6 +516,50 @@ impl Parser {
     /*Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] ) */
     pub fn factor(&mut self) -> Result<i32, ParseError> {
         println!("In factor");
+
+        //if factor is an expression
+        if self.tokens[self.t_num].text == "(".to_string() {
+            self.inc_token();
+            self.expression()?;
+            if self.tokens[self.t_num].text != ")".to_string() {
+                return Err(ParseError::General{l: self.line_num, c: self.char_pos, msg: "Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] )".to_string()});
+            } else {
+                return Ok(0)
+            }
+        }
+
+        //if factor is identifier
+        if self.tokens[self.t_num].token_type == TokenType::Identifier {
+            if self.tokens[self.t_num+1].text == "(".to_string() {
+                self.inc_token();
+                self.inc_token();
+                if self.tokens[self.t_num].text == ")".to_string() {
+                    return Ok(0)
+                } else {
+                    let mut exp_ret = self.expression()?;
+                    while exp_ret == 0 {
+                        //self.inc_token();
+                        if self.tokens[self.t_num].text == ",".to_string() {
+                            self.inc_token();
+                            exp_ret = self.expression()?;
+                        }
+                        else if self.tokens[self.t_num].text == ")".to_string() {
+                            self.inc_token();
+                            println!("reached end of expression block");
+                            return Ok(0);
+                        }
+                        else {
+                            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                            msg: "Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] )".to_string()});
+                        }
+                    }
+                }
+            }
+        }
+
+        //if here it has to be a constant
+        self.constant()?;
+
 
         //no errors
         Ok(0)
@@ -497,6 +573,7 @@ impl Parser {
             self.inc_token();
             return Ok(0)
         }
+        println!("leaving rel op");
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "RelationOperator := ( == ) | < | > | ( <= ) | ( >= ) | ( != )".to_string()});
         
