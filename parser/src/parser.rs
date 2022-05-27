@@ -85,7 +85,7 @@ impl Parser {
         } 
 
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration".to_string()}); 
+                msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration)".to_string()}); 
 
     }
 
@@ -200,12 +200,20 @@ impl Parser {
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
         self.inc_token();
+        if self.tokens[self.t_num].text == "}".to_string() {
+            return Ok(0);
+        }
+
+        let mut num_declarations = 0;
+        let mut num_statements = 0;
+        let mut num_funcdef = 0;
 
         //{declaration}
         let mut declaration_ret = self.declaration();
         while true {
             if let Ok(i) = declaration_ret {
                 //self.inc_token();
+                num_declarations = num_declarations + 1;
                 declaration_ret = self.declaration();
             } else {
                 break;
@@ -217,6 +225,7 @@ impl Parser {
         while true {
             if let Ok(i) = statement_ret {
                 //self.inc_token();
+                num_statements = num_statements + 1;
                 statement_ret = self.statement();
             } else {
                 break;
@@ -228,11 +237,18 @@ impl Parser {
         while true {
             if let Ok(i) = funcdef_ret {
                 //self.inc_token();
+                num_funcdef = num_funcdef + 1;
                 funcdef_ret = self.function_definition();
             } else {
                 break;
             }  
         }
+
+        if num_declarations == 0 && num_statements == 0 && num_funcdef == 0 {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
+        }
+
 
         //println!("COULD POTENTIALLY RETURN FROM BLOCK");
 
@@ -240,6 +256,7 @@ impl Parser {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
+
         
         println!("RETURNING FROM BLOCK");
 
@@ -342,13 +359,12 @@ impl Parser {
         ReturnStatement | (Expression ;)*/
     pub fn statement(&mut self) -> Result<i32, ParseError> {
         println!("In statement");
-
         
         let while_ret = self.while_loop();
         let if_ret = self.if_statement();
         let ret_ret = self.return_statement();
         let assign_ret = self.assignment();
-
+        let exp_ret = self.expression();
 
         if let Ok(i) = assign_ret {
             //self.inc_token();
@@ -369,7 +385,13 @@ impl Parser {
             //self.inc_token();
             println!("leaving statement");
             return Ok(0)
-        } 
+        }
+        if let Ok(i) = exp_ret {
+            if self.tokens[self.t_num].text == ";".to_string() {
+                self.inc_token();
+                return Ok(0)
+            }
+        }
 
 
         println!("leaving statement");
@@ -435,8 +457,14 @@ impl Parser {
     pub fn assignment(&mut self) -> Result<i32, ParseError> {
         println!("In assignment");
 
+        if self.tokens[self.t_num].token_type != TokenType::Identifier || self.tokens[self.t_num+1].text != "=".to_string() {
+            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+                msg: "Assignment := Identifier = {Identifier = } Expression;".to_string()});
+        }
+        self.inc_token();
+        self.inc_token();
 
-        while (self.tokens[self.t_num].token_type == TokenType::Identifier) {
+        while self.tokens[self.t_num].token_type == TokenType::Identifier {
             println!("checking assignment while loop");
             //self.inc_token();
             if self.tokens[self.t_num+1].text != "=" {
