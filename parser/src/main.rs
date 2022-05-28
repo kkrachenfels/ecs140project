@@ -24,7 +24,7 @@ fn main() {
     file.write_all(b"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n").expect("Unable to write to file");
     file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
     file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:white\">\n").expect("Unable to write to file");
-    file.write_all(b"<p>").expect("Unable to write to file");
+    //file.write_all(b"<p>").expect("Unable to write to file");
     //read in all tokens
     while s.not_eof() {
         all_tokens.push(s.get_next_token());
@@ -39,14 +39,11 @@ fn main() {
         if token.text==";" || token.text=="{" || token.text=="}" {
             file.write_all(token.text.as_bytes()).expect("Unable to write to file");
             if token.text==";" {
-                file.write_all(b"<p>").expect("Unable to write to file");
                 file.write_all(b"\n").expect("Unable to write to file");
             }
             if token.text=="{"{
-                file.write_all(b"<p>").expect("Unable to write to file");
             }
             if token.text=="}"{
-                file.write_all(b"</p>").expect("Unable to write to file");
             }
             continue
         }
@@ -56,7 +53,6 @@ fn main() {
         }
         file.write_all(b" ").expect("Unable to write to file");
     }
-    file.write_all(b"</p>").expect("Unable to write to file");
     file.write_all(b"</body>\n</html>").expect("Unable to write to file");
 
     //parse the vector of tokens
