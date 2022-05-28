@@ -5,11 +5,9 @@ Done by
 | Brinda Puri     |   917018541     | 
 | Kay Krachenfels | Text            |
 
-
-
-
 Finished stages uptill 3.3 
-3.4 Paritally compleated
+
+Paritally compleated 3.4 
 
 Running Code 
 1. To run this program make sure you are in the src folder inside parser. You can do this by typing the folling in your terminal
