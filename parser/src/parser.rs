@@ -42,8 +42,13 @@ impl Parser {
         //check for zero or more function definitions
         let mut funcdef_ret = self.function_definition();
         
-        if let Ok(_i) = funcdef_ret {
-            funcdef_ret = self.function_definition();
+        loop {
+            if let Ok(_i) = funcdef_ret {
+                funcdef_ret = self.function_definition();
+            }
+            else {
+                break;
+            }
         }
 
         //if no parse errors
@@ -649,6 +654,7 @@ impl Parser {
 
     //since we'll be iterating through the vector a lot
     pub fn inc_token(&mut self) {
+        //if we aren't at the end of the token vector
         if self.t_num+1 != self.tokens.len() {
             self.t_num += 1;
             self.line_num = self.tokens[self.t_num].line_num;

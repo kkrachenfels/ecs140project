@@ -32,7 +32,7 @@ fn main() {
     let mut x_parser = Parser::new(&all_tokens);
     let result = x_parser.program();
     match result {
-        Ok(_) => (),
-        Err(e) => println!("{}", e)
+        Ok(_) => (), //TO-DO: if Ok(_), proceed to step 4: create xhtml
+        Err(e) => println!("{}", e) 
     }
 }
