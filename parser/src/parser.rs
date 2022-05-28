@@ -31,26 +31,24 @@ impl Parser {
     pub fn program(&mut self) -> Result<i32, ParseError> {
         println!("In program");
         
-        //check second token
-       /* if self.tokens[].text != "main".to_string() {
-            //descend into declaration 
-            //loop
-            let mut declaration_ret = self.declaration()?;
-            while declaration_ret == 0 {
-                declaration_ret = self.declaration()?;
-            }
-        }*/
-
+        //check for zero or more declarations
         while self.tokens[self.t_num].text != "void".to_string() {
-            let mut declaration_ret = self.declaration()?;
+            self.declaration()?;
         }
 
         //descend into main_declaration
-        let main_declar_ret = self.main_declaration()?;
+        self.main_declaration()?;
 
+        //check for zero or more function definitions
         let mut funcdef_ret = self.function_definition();
-        if let Ok(i) = funcdef_ret {
-            funcdef_ret = self.function_definition();
+        
+        loop {
+            if let Ok(_i) = funcdef_ret {
+                funcdef_ret = self.function_definition();
+            }
+            else {
+                break;
+            }
         }
 
         //if no parse errors
@@ -62,28 +60,21 @@ impl Parser {
     pub fn declaration(&mut self) -> Result<i32, ParseError> {
         println!("In declaration");
 
-        let declar_ret = self.declaration_type()?;
+        //check mandatory declaration type
+        self.declaration_type()?;
 
-        println!("came up from declaration type");
-
-        //Ok(0) => 0
-        //error(msg)
-
-        //TO-DO: check that either one is Ok(0) (can't use question mark)
         let func_dec = self.function_declaration();
         let var_dec = self.variable_declaration();
-        
 
-
-        if let Ok(i) = func_dec {
-            //self.inc_token();
+        //if there is either a variable or function declaration
+        if let Ok(_i) = func_dec {
             return Ok(0);
         }
-        if let Ok(i) = var_dec {
-            //self.inc_token();
+        if let Ok(_i) = var_dec {
             return Ok(0)
         } 
 
+        //else, error
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Declaration := DeclarationType (VariableDeclaration | FunctionDeclaration)".to_string()}); 
 
@@ -115,9 +106,8 @@ impl Parser {
         }
         self.inc_token();
 
-
         //if no errors in "void main ( )"
-        let block_ret = self.block()?;
+        self.block()?;
 
         println!("LEAVING MAIN DECLARATION");
         //no errors
@@ -143,8 +133,7 @@ impl Parser {
     pub fn declaration_type(&mut self) -> Result<i32, ParseError> {
         println!("In declaration type");
 
-        let datatype_ret = self.data_type()?;
-        //self.inc_token();
+        self.data_type()?;
 
         if self.tokens[self.t_num].token_type == TokenType::Identifier {
             self.inc_token();
@@ -179,7 +168,6 @@ impl Parser {
         println!("In function_declaration");  
 
         self.parameter_block()?;
-        //self.inc_token();
         if self.tokens[self.t_num].text != ";".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "FunctionDeclaration := ParameterBlock ;".to_string()});
@@ -200,18 +188,20 @@ impl Parser {
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
         self.inc_token();
+        //if block is empty
         if self.tokens[self.t_num].text == "}".to_string() {
             return Ok(0);
         }
 
+        //else, there must be something inside the block
         let mut num_declarations = 0;
         let mut num_statements = 0;
         let mut num_funcdef = 0;
 
         //{declaration}
         let mut declaration_ret = self.declaration();
-        while true {
-            if let Ok(i) = declaration_ret {
+        loop {
+            if let Ok(_i) = declaration_ret {
                 //self.inc_token();
                 num_declarations = num_declarations + 1;
                 declaration_ret = self.declaration();
@@ -219,11 +209,10 @@ impl Parser {
                 break;
             }  
         }
-
         //{statement}
         let mut statement_ret = self.statement();
-        while true {
-            if let Ok(i) = statement_ret {
+        loop {
+            if let Ok(_i) = statement_ret {
                 //self.inc_token();
                 num_statements = num_statements + 1;
                 statement_ret = self.statement();
@@ -231,11 +220,10 @@ impl Parser {
                 break;
             }  
         }
-
         //{function definition}
         let mut funcdef_ret = self.function_definition();
-        while true {
-            if let Ok(i) = funcdef_ret {
+        loop {
+            if let Ok(_i) = funcdef_ret {
                 //self.inc_token();
                 num_funcdef = num_funcdef + 1;
                 funcdef_ret = self.function_definition();
@@ -244,26 +232,21 @@ impl Parser {
             }  
         }
 
+        //if all three checks threw errors 
         if num_declarations == 0 && num_statements == 0 && num_funcdef == 0 {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
 
-
-        //println!("COULD POTENTIALLY RETURN FROM BLOCK");
-
+        //if no closing brace
         if self.tokens[self.t_num].text != "}".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Block := { {Declaration} {Statement} {FunctionDefinition} }".to_string()});
         }
-
         
         println!("RETURNING FROM BLOCK");
-
         self.inc_token();
-
         Ok(0)
-
     }
 
     //ParameterBlock := ( [Parameter {, Parameter}] ) 
@@ -275,6 +258,7 @@ impl Parser {
                 msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
         }
         self.inc_token();
+        //if empty parameter block
         if self.tokens[self.t_num].text == ")".to_string() {
             self.inc_token();
             return Ok(0);
@@ -282,7 +266,6 @@ impl Parser {
         
         let mut param_ret = self.parameter()?;
         while param_ret == 0 {
-            //self.inc_token();
             if self.tokens[self.t_num].text == ",".to_string() {
                 self.inc_token();
                 param_ret = self.parameter()?;
@@ -293,20 +276,11 @@ impl Parser {
                 return Ok(0);
             }
             else {
-                return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
+                return Err(ParseError::General{l: self.line_num, c: self.char_pos, msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
             }
         }
-/*
-        if self.tokens[self.t_num].text != ")".to_string() {
-            println!("didn't detect end of parameter block");
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "ParameterBlock := ( [Parameter {, Parameter}] )".to_string()});
-        }
-*/
-        println!("reached end of parameter block");
 
-        //no errors
+        println!("reached end of parameter block");
         self.inc_token();
         Ok(0) 
     }
@@ -318,28 +292,19 @@ impl Parser {
         let int_ret = self.integer_type();
         let float_ret = self.float_type();
 
-        if let Ok(i) = int_ret {
+        //if either integer type or float type found
+        if let Ok(_i) = int_ret {
             self.inc_token();
             return Ok(0)
         } 
-        if let Ok(i) = float_ret {
+        if let Ok(_i) = float_ret {
             self.inc_token();
             return Ok(0)
         } 
-        println!("didn't find int or float type");
-        //else {
-            return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "DataType := IntegerType | FloatType".to_string()});
-        //}
 
-        /*
-        if (int_ret == 0 || float_ret == 0) {
-            self.inc_token();
-            Ok(0)
-        }*/
-
-        //no errors
-        //Ok(0)
+        //println!("didn't find int or float type");
+        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
+            msg: "DataType := IntegerType | FloatType".to_string()});
     }
 
     //Constant := IntConstant | FloatConstant
@@ -350,7 +315,7 @@ impl Parser {
             self.inc_token();
             return Ok(0);
         }
-        //else errors
+
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
             msg: "Constant := IntConstant | FloatConstant".to_string()});
     }
@@ -366,47 +331,39 @@ impl Parser {
         let assign_ret = self.assignment();
         let exp_ret = self.expression();
 
-        if let Ok(i) = assign_ret {
-            //self.inc_token();
+        if let Ok(_i) = assign_ret {
             println!("leaving statement");
             return Ok(0)
         } 
-        if let Ok(i) = while_ret {
-            //self.inc_token();
+        if let Ok(_i) = while_ret {
             println!("leaving statement");
             return Ok(0)
         } 
-        if let Ok(i) = if_ret {
-            //self.inc_token();
+        if let Ok(_i) = if_ret {
             println!("leaving statement");
             return Ok(0)
         } 
-        if let Ok(i) = ret_ret {
-            //self.inc_token();
+        if let Ok(_i) = ret_ret {
             println!("leaving statement");
             return Ok(0)
         }
-        if let Ok(i) = exp_ret {
+        if let Ok(_i) = exp_ret {
             if self.tokens[self.t_num].text == ";".to_string() {
                 self.inc_token();
                 return Ok(0)
             }
         }
 
-
         println!("leaving statement");
-        //no errors
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Statement := Assignment | WhileLoop | IfStatement | 
-        ReturnStatement | (Expression ;)".to_string()});
+            msg: "Statement := Assignment | WhileLoop | IfStatement | ReturnStatement | (Expression ;)".to_string()});
     }
 
     //Parameter := DataType Identifier
     pub fn parameter(&mut self) -> Result<i32, ParseError> {
         println!("In parameter");
 
-        let datatype_ret = self.data_type()?;
-        //self.inc_token();
+        self.data_type()?;
 
         if self.tokens[self.t_num].token_type != TokenType::Identifier {
             println!("found identifier!");
@@ -414,10 +371,9 @@ impl Parser {
                 msg: "DeclarationType := DataType Identifier".to_string()});
         }
 
+        //no errors
         println!("Leaving parameter");
         self.inc_token();
-
-        //no errors
         Ok(0)
     }
 
@@ -430,7 +386,6 @@ impl Parser {
         }
 
         if self.tokens[self.t_num].text == "char".to_string() || self.tokens[self.t_num].text == "short".to_string() || self.tokens[self.t_num].text == "long".to_string() || self.tokens[self.t_num].text == "int".to_string()  {
-            //self.inc_token();
             return Ok(0)
         }
 
@@ -447,8 +402,6 @@ impl Parser {
             return Ok(0)
         }
 
-        //no errors
-       // Ok(0)
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "FloatType := float | double".to_string()});
     }
@@ -465,7 +418,7 @@ impl Parser {
         self.inc_token();
 
         while self.tokens[self.t_num].token_type == TokenType::Identifier {
-            println!("checking assignment while loop");
+            //println!("checking assignment while loop");
             //self.inc_token();
             if self.tokens[self.t_num+1].text != "=" {
                 break;
@@ -475,18 +428,18 @@ impl Parser {
         }
 
         //check for expression
-        let exp_ret = self.expression()?;
+        self.expression()?;
 
-        println!("RESUMING ASSIGNMENT");
+        //println!("RESUMING ASSIGNMENT");
 
         if self.tokens[self.t_num].text != ";".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "Assignment := Identifier = {Identifier = } Expression;".to_string()});
         }
 
+        //no errors
         println!("leaving assigment");
         self.inc_token();
-        //no errors
         Ok(0)
     }
 
@@ -504,16 +457,15 @@ impl Parser {
                 msg: "WhileLoop := while ( Expression ) Block".to_string()});
         }
         self.inc_token();
-        println!("ABOUT TO CHECK EXPRESSION IN WHILE LOOP");
+        //println!("ABOUT TO CHECK EXPRESSION IN WHILE LOOP");
         self.expression()?;
-        println!("CAME BACK FROM EXPRESSION IN WHILE LOOP");
+        //println!("CAME BACK FROM EXPRESSION IN WHILE LOOP");
         if self.tokens[self.t_num].text != ")".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "WhileLoop := while ( Expression ) Block".to_string()});
         }
         self.inc_token();
         self.block()?;
-
 
         //no errors
         Ok(0)
@@ -522,11 +474,12 @@ impl Parser {
     //IfStatement := if ( Expression ) Block
     pub fn if_statement(&mut self) -> Result<i32, ParseError> {
         println!("In if statement");
+        
         if self.tokens[self.t_num].text != "if".to_string() {
             return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
                 msg: "ReturnStatement := return Expression ;".to_string()});
         }
-        //no errors
+
         Ok(0)
     }
 
@@ -555,44 +508,36 @@ impl Parser {
     pub fn expression(&mut self) -> Result<i32, ParseError> {
         println!("In expression");
 
-        let mut simp_ret = self.simple_expression()?;
+        self.simple_expression()?;
 
-        let mut rel_op = self.relation_operator();
+        let rel_op = self.relation_operator();
 
-        if let Ok(i) = rel_op {
-            simp_ret = self.simple_expression()?;
-        } else {
-            println!("leaving expression");
-            return Ok(0);
-        }
-/*
-        return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "Expression := SimpleExpression [ RelationOperator SimpleExpression ]".to_string()}); */
-
-        //no errors
+        if let Ok(_i) = rel_op {
+            self.simple_expression()?;
+        } 
+        
         println!("leaving expression");
-        Ok(0)
+        return Ok(0);
     }
 
     //SimpleExpression := Term { AddOperator Term }
     pub fn simple_expression(&mut self) -> Result<i32, ParseError> {
         println!("In simple expression");
 
-        let mut term_ret = self.term()?;
+        self.term()?;
 
         let mut add_op = self.add_operator();
-        while true {
-            if let Ok(i) = add_op {
-                //self.inc_token();
-                println!("LOOPING IN SIMPLE EXPRESSION");
-                term_ret = self.term()?;
+        loop {
+            if let Ok(_i) = add_op {
+                //println!("LOOPING IN SIMPLE EXPRESSION");
+                self.term()?;
                 add_op = self.add_operator();
             } else {
                 break;
             }  
         }
-        println!("leaving simple expression");
         //no errors
+        println!("leaving simple expression");
         Ok(0)
     }
 
@@ -600,21 +545,20 @@ impl Parser {
     pub fn term(&mut self) -> Result<i32, ParseError> {
         println!("In term");
 
-        let mut fac_ret = self.factor()?;
+        self.factor()?;
 
         let mut mul_op = self.mult_operator();
-        while true {
-            if let Ok(i) = mul_op {
-                //self.inc_token();
-                fac_ret = self.factor()?;
+        loop {
+            if let Ok(_i) = mul_op {
+                self.factor()?;
                 mul_op = self.mult_operator();
             } else {
                 break;
             }
         }
 
-        println!("leaving term");
         //no errors
+        println!("leaving term");
         Ok(0)
     }
 
@@ -632,7 +576,6 @@ impl Parser {
                 return Ok(0)
             }
         }
-
         //if factor is identifier
         if self.tokens[self.t_num].token_type == TokenType::Identifier {
             if self.tokens[self.t_num+1].text == "(".to_string() {
@@ -650,7 +593,7 @@ impl Parser {
                         }
                         else if self.tokens[self.t_num].text == ")".to_string() {
                             self.inc_token();
-                            println!("reached end of expression block");
+                            //println!("reached end of expression block");
                             return Ok(0);
                         }
                         else {
@@ -665,8 +608,7 @@ impl Parser {
                 return Ok(0)
             }
         }
-
-        //if here it has to be a constant
+        //if we are here the factor has to be a constant
         self.constant()?;
         println!("leaving factor");
 
@@ -684,7 +626,7 @@ impl Parser {
         }
         println!("leaving rel op");
         return Err(ParseError::General{l: self.line_num, c: self.char_pos, 
-                msg: "RelationOperator := ( == ) | < | > | ( <= ) | ( >= ) | ( != )".to_string()});
+            msg: "RelationOperator := ( == ) | < | > | ( <= ) | ( >= ) | ( != )".to_string()});
         
     }
 
@@ -712,6 +654,7 @@ impl Parser {
 
     //since we'll be iterating through the vector a lot
     pub fn inc_token(&mut self) {
+        //if we aren't at the end of the token vector
         if self.t_num+1 != self.tokens.len() {
             self.t_num += 1;
             self.line_num = self.tokens[self.t_num].line_num;

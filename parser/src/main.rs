@@ -2,6 +2,7 @@ use std::fs::File;
 use std::env;
 use std::io::stdin;
 use std::io::prelude::*;
+use std::env;
 
 mod cstream;
 mod token;
@@ -11,14 +12,6 @@ use crate::cstream::CStream;
 use crate::token::*;
 use crate::scanner::Scanner;
 use crate::parser::*;
-
-/*fn c(ty:TokenType)-> &'static str{
-    if ty==TokenType::IntConstant{return "aqua"}
-    if ty==TokenType::FloatConstant{return "aqua"}
-    if ty==TokenType::Operator{return "white"}
-    if ty==TokenType::Keyword{return "white"}
-    else {return "yellow"}
-}*/
 
 fn main() {
     let mut all_tokens:Vec<Token>=vec![];
@@ -33,6 +26,11 @@ fn main() {
     file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
     file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:white\">\n").expect("Unable to write to file");
     file.write_all(b"<p>").expect("Unable to write to file");
+    //read in all tokens
+    while s.not_eof() {
+        all_tokens.push(s.get_next_token());
+    }
+    //print out collected tokens
     let mut n=0;
     for token in all_tokens.iter()
     {
@@ -61,10 +59,12 @@ fn main() {
     }
     file.write_all(b"</p>").expect("Unable to write to file");
     file.write_all(b"</body>\n</html>").expect("Unable to write to file");
+
+    //parse the vector of tokens
     let mut x_parser = Parser::new(&all_tokens);
     let result = x_parser.program();
     match result {
         Ok(_) => (),
-        Err(e) => println!("{}", e)
+        Err(e) => println!("{}", e) 
     }
 }
