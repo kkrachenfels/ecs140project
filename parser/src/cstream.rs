@@ -30,10 +30,6 @@ impl CStream {
         }
         return true;
     }
-    //return the current char 
-    pub fn get_cur_char(&mut self) -> char {
-        return self.file_data[self.cur_char] as char;
-    }
     //return the next char
     pub fn get_next_char(&mut self) -> char {
         if self.more_available() == false {
@@ -74,27 +70,5 @@ impl CStream {
         else {
             return self.file_data[self.cur_char+1] as char;
         }
-    }
-    //return the kth ahead char, without modifying position trackers
-    pub fn peek_ahead_char(&mut self, k: i32) -> char {
-        let mut new_char_num = self.cur_char;
-        let mut count = 0;
-        //account for being at the start of the file
-        if self.line_num == -1 && self.char_pos == -1 {
-            count += 1;
-        }
-        while count <= k {
-            if self.file_data[new_char_num] as char == '\n' {
-                new_char_num += 1;
-            }
-            else {
-                new_char_num += 1;
-                count += 1;
-            }
-        }
-        if self.file_data[new_char_num] as char == '\n' {
-            return self.file_data[new_char_num+1] as char;
-        }
-        return self.file_data[new_char_num] as char;
     }
 }
