@@ -2,7 +2,6 @@ use std::fs::File;
 use std::env;
 use std::io::stdin;
 use std::io::prelude::*;
-use std::env;
 
 mod cstream;
 mod token;
