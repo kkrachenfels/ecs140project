@@ -1,6 +1,7 @@
-use std::fs;
+use std::fs::File;
 use std::env;
 use std::io::stdin;
+use std::io::prelude::*;
 
 mod cstream;
 mod token;
@@ -11,24 +12,55 @@ use crate::token::*;
 use crate::scanner::Scanner;
 use crate::parser::*;
 
-
+/*fn c(ty:TokenType)-> &'static str{
+    if ty==TokenType::IntConstant{return "aqua"}
+    if ty==TokenType::FloatConstant{return "aqua"}
+    if ty==TokenType::Operator{return "white"}
+    if ty==TokenType::Keyword{return "white"}
+    else {return "yellow"}
+}*/
 
 fn main() {
     let mut all_tokens:Vec<Token>=vec![];
     let args: Vec<String> = env::args().collect();
     let mut s = Scanner::new(&args[1]);
-
+    let mut file =File::create("color.xhtml").expect("Could not create file");
     while s.not_eof() {
         all_tokens.push(s.get_next_token());
     }
-
+    file.write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n").expect("Unable to write to file");
+    file.write_all(b"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n").expect("Unable to write to file");
+    file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
+    file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:white\">\n").expect("Unable to write to file");
+    file.write_all(b"<p>").expect("Unable to write to file");
     let mut n=0;
     for token in all_tokens.iter()
     {
         println!("Token {} = {}\nToken Type: {:?}\n",n,token.text,token.token_type);
         n+=1;
+        if token.text=="<"{file.write_all(b"&lt;").expect("Unable to write to file");continue}
+        if token.text==";" || token.text=="{" || token.text=="}" {
+            file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+            if token.text==";" {
+                file.write_all(b"<p>").expect("Unable to write to file");
+                file.write_all(b"\n").expect("Unable to write to file");
+            }
+            if token.text=="{"{
+                file.write_all(b"<p>").expect("Unable to write to file");
+            }
+            if token.text=="}"{
+                file.write_all(b"</p>").expect("Unable to write to file");
+            }
+            continue
+        }
+        else
+        {
+            file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+        }
+        file.write_all(b" ").expect("Unable to write to file");
     }
-
+    file.write_all(b"</p>").expect("Unable to write to file");
+    file.write_all(b"</body>\n</html>").expect("Unable to write to file");
     let mut x_parser = Parser::new(&all_tokens);
     let result = x_parser.program();
     match result {
