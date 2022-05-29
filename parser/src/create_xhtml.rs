@@ -5,7 +5,7 @@ use crate::token::*;
 
 pub fn indent_line(fp: &mut File, num_indents:i32) {
     for indent in 0..num_indents {
-        fp.write_all(b"&nbsp;&nbsp;").expect("Unable to write to file");
+        fp.write_all(b"&nbsp;&nbsp;&nbsp;").expect("Unable to write to file");
     }
 }
 
@@ -21,7 +21,16 @@ pub fn create(all_tokens:Vec<Token>){
     for token in all_tokens.iter()
     {
         if token.text=="<"{
-            file.write_all(b"&lt;").expect("Unable to write to file");
+            file.write_all(b"<span style=\"color: white\"><b>").expect("Unable to write to file");
+            file.write_all(b"&lt; ").expect("Unable to write to file");
+            file.write_all(b"</b></span>").expect("Unable to write to file");
+            token_num += 1;
+            continue
+        }
+        if token.text=="<="{
+            file.write_all(b"<span style=\"color: white\"><b>").expect("Unable to write to file");
+            file.write_all(b"&lt;= ").expect("Unable to write to file");
+            file.write_all(b"</b></span>").expect("Unable to write to file");
             token_num += 1;
             continue
         }
@@ -38,8 +47,6 @@ pub fn create(all_tokens:Vec<Token>){
                 }
             }
             if token.text=="{"{
-                //file.write_all(b"<br />").expect("Unable to write to file");
-                //indent_line(&mut file, indent_level);
                 indent_level += 1;
                 file.write_all(b"{<br />").expect("Unable to write to file");
                 indent_line(&mut file, indent_level);
@@ -47,7 +54,12 @@ pub fn create(all_tokens:Vec<Token>){
             if token.text=="}"{
                 indent_level -= 1;
                 file.write_all(b"}<br />").expect("Unable to write to file");
-                indent_line(&mut file, indent_level);
+                if token_num < all_tokens.len()-1 && all_tokens[token_num+1].text == "}" {
+                    indent_line(&mut file, indent_level-1);
+                }
+                else {
+                    indent_line(&mut file, indent_level);
+                }
             }
             file.write_all(b"</b></span>").expect("Unable to write to file");
         }

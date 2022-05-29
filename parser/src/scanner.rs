@@ -90,6 +90,7 @@ impl Scanner
         {
             token_text.push(elem);
             token_text.push('=');
+            self.cstrm.get_next_char();
             return token_text
         }
         for i in 0..self.operator_list.len()
