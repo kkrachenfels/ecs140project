@@ -12,19 +12,6 @@ pub enum TokenType
     Invalid
 }
 
-impl TokenType {
-    pub fn as_str(&self) -> &'static str {
-        match &self {
-            TokenType::IntConstant => "int constant",
-            TokenType::FloatConstant => "float constant",
-            TokenType::Keyword => "keyword",
-            TokenType::Identifier => "identifier",
-            TokenType::Operator => "operator",
-            TokenType::Invalid => "invalid"
-        }
-    }
-}
-
 #[derive(Clone)]
 
 pub struct Token

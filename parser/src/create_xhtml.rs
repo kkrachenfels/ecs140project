@@ -4,13 +4,18 @@ use crate::token::*;
 
 
 pub fn indent_line(fp: &mut File, num_indents:i32) {
-    for indent in 0..num_indents {
+    for _indent in 0..num_indents {
         fp.write_all(b"&nbsp;&nbsp;&nbsp;").expect("Unable to write to file");
     }
 }
 
-pub fn create(all_tokens:Vec<Token>){
-    let mut file =File::create("color.xhtml").expect("Could not create file");
+
+pub fn create(all_tokens:Vec<Token>, filename:&String){
+    let newfile = filename.as_str().split(".").collect::<Vec<&str>>();
+    let xhtml: &str = ".xhtml";
+    let writefile = newfile[0].to_owned() + xhtml;
+
+    let mut file =File::create(writefile).expect("Could not create file");
     file.write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n").expect("Unable to write to file");
     file.write_all(b"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n").expect("Unable to write to file");
     file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
