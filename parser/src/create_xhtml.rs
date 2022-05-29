@@ -22,7 +22,7 @@ pub fn create(all_tokens:Vec<Token>){
                 file.write_all(b"<br />{<br />").expect("Unable to write to file");
             }
             if token.text=="}"{
-                file.write_all(b"<br />}<br />").expect("Unable to write to file");
+                file.write_all(b"}<br />").expect("Unable to write to file");
             }
             file.write_all(b"</span>").expect("Unable to write to file");
         }
