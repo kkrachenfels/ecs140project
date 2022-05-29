@@ -7,7 +7,7 @@ pub fn create(all_tokens:Vec<Token>){
     file.write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n").expect("Unable to write to file");
     file.write_all(b"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n").expect("Unable to write to file");
     file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
-    file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:orange\">\n").expect("Unable to write to file");
+    file.write_all(b"<head>\n <title>X Formatted file</title>\n</head>\n<body bgcolor=\"navy\" text=\"orange\" link=\"orange\" vlink=\"orange\">\n<font face=\"Courier New\">\n").expect("Unable to write to file");
     file.write_all(b"<p>").expect("Unable to write to file");
     for token in all_tokens.iter()
     {
@@ -50,5 +50,5 @@ pub fn create(all_tokens:Vec<Token>){
         file.write_all(b" ").expect("Unable to write to file");
     }
     file.write_all(b"\n</p>").expect("Unable to write to file");
-    file.write_all(b"</body>\n</html>").expect("Unable to write to file");
+    file.write_all(b"</font></body>\n</html>").expect("Unable to write to file");
 }
