@@ -1,8 +1,8 @@
 ## Parser (ECS 140A Project)
 Done by
-| Name            |  Email                       | SID             | 
+| Name            |  Email                      | SID             | 
 | :---            |   ----:                     |     ----:       |
-| Brinda Puri     |   @ucdavis.edu              |   917018541     | 
+| Brinda Puri     |   bpuri@ucdavis.edu         |   917018541     | 
 | Kay Krachenfels |   kkrachenfels@ucdavis.edu  |   918183640     |
 
 Finished all stages. 
