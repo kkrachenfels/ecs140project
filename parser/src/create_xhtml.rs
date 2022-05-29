@@ -13,17 +13,18 @@ pub fn create(all_tokens:Vec<Token>){
     {
         if token.text=="<"{file.write_all(b"&lt;").expect("Unable to write to file");continue}
         if token.text==";" || token.text=="{" || token.text=="}" {
+            file.write_all(b"<span style=\"color: white\">").expect("Unable to write to file");
             if token.text==";" {
                 file.write_all(token.text.as_bytes()).expect("Unable to write to file");
-                file.write_all(b"</p>\n<p>").expect("Unable to write to file");
+                file.write_all(b"<br />").expect("Unable to write to file");
             }
             if token.text=="{"{
-                file.write_all(b"</p>\n<p>{</p>\n<p>").expect("Unable to write to file");
+                file.write_all(b"<br />{<br />").expect("Unable to write to file");
             }
             if token.text=="}"{
-                file.write_all(b"</p>\n<p>}</p>\n<p>").expect("Unable to write to file");
+                file.write_all(b"}<br />").expect("Unable to write to file");
             }
-            continue
+            file.write_all(b"</span>").expect("Unable to write to file");
         }
         else
         {
