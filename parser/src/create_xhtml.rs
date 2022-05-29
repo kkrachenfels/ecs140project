@@ -20,7 +20,11 @@ pub fn create(all_tokens:Vec<Token>){
     let mut token_num = 0;
     for token in all_tokens.iter()
     {
-        if token.text=="<"{file.write_all(b"&lt;").expect("Unable to write to file");continue}
+        if token.text=="<"{
+            file.write_all(b"&lt;").expect("Unable to write to file");
+            token_num += 1;
+            continue
+        }
         if token.text==";" || token.text=="{" || token.text=="}" {
             file.write_all(b"<span style=\"color: white\"><b>").expect("Unable to write to file");
             if token.text==";" {
