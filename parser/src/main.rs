@@ -23,7 +23,7 @@ fn main() {
     file.write_all(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n").expect("Unable to write to file");
     file.write_all(b"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n").expect("Unable to write to file");
     file.write_all(b"<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\">\n").expect("Unable to write to file");
-    file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:white\">\n").expect("Unable to write to file");
+    file.write_all(b"<head>\n <title>Token XHTML</title>\n</head>\n<body style=\"background-color:navy;font-family:Courier New;color:orange\">\n").expect("Unable to write to file");
     file.write_all(b"<p>").expect("Unable to write to file");
     //read in all tokens
     while s.not_eof() {
@@ -42,7 +42,6 @@ fn main() {
                 file.write_all(b"</p>\n<p>").expect("Unable to write to file");
             }
             if token.text=="{"{
-
                 file.write_all(b"</p>\n<p>{</p>\n<p>").expect("Unable to write to file");
             }
             if token.text=="}"{
@@ -52,7 +51,25 @@ fn main() {
         }
         else
         {
-            file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+            if token.token_type==TokenType::IntConstant|| token.token_type==TokenType::FloatConstant {
+                file.write_all(b"<span style=\"color: aqua\">").expect("Unable to write to file");
+                file.write_all(b"<b>").expect("Unable to write to file");
+                file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+                file.write_all(b"</b></span>").expect("Unable to write to file");
+            }
+            else if  token.token_type==TokenType::Keyword || token.token_type==TokenType::Operator{
+                file.write_all(b"<span style=\"color: white\">").expect("Unable to write to file");
+                file.write_all(b"<b>").expect("Unable to write to file");
+                file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+                file.write_all(b"</b></span>").expect("Unable to write to file");
+            }
+            else if  token.token_type==TokenType::Identifier{
+                file.write_all(b"<span style=\"color: yellow\">").expect("Unable to write to file");
+                file.write_all(token.text.as_bytes()).expect("Unable to write to file");
+                file.write_all(b"</span>").expect("Unable to write to file");
+            }
+
+
         }
         file.write_all(b" ").expect("Unable to write to file");
     }
